@@ -1,9 +1,9 @@
 <apex:component controller="UnitTestReportPdfController"  access="global">
  <apex:attribute name="job_ID" description="Job ID" type="ID" assignTo="{!jobId}"/>
-  <h1 >Job Id {!jobId}</h1>
-  <h1>Job Id {!classDetails}</h1>
-  <h1 >Job Id {!negativeOutput}</h1>
-  <h1 >Job Id {!testResultList}</h1>
+  <h1 style="display:none">Job Id {!jobId}</h1>
+    <h1 style="display:none">Job Id {!classDetails}</h1>
+    <h1 style="display:none">Job Id {!negativeOutput}</h1>
+    <h1 style="display:none">Job Id {!testResultList}</h1>
    <table style="border: 1px solid black;width:640px;margin:0 auto;color:black; " align="left">
             <tr height="50p" bgcolor="Grey" style="font-size:35px;" >
                 <td align="center"><h2><span> Code Coverage Report </span></h2><span style="display:block;font-size:16px;align:center;margin-top:0px;padding-top:0px;padding-bottom:20px;"><strong> Time: {!curTime} </strong></span></td>
