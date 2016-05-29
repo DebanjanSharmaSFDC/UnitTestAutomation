@@ -1,0 +1,81 @@
+<apex:component controller="UnitTestReportPdfController"  access="global">
+ <apex:attribute name="job_ID" description="Job ID" type="ID" assignTo="{!jobId}"/>
+  <h1 >Job Id {!jobId}</h1>
+  <h1>Job Id {!classDetails}</h1>
+  <h1 >Job Id {!negativeOutput}</h1>
+  <h1 >Job Id {!testResultList}</h1>
+   <table style="border: 1px solid black;width:640px;margin:0 auto;color:black; " align="left">
+            <tr height="50p" bgcolor="Grey" style="font-size:35px;" >
+                <td align="center"><h2><span> Code Coverage Report </span></h2><span style="display:block;font-size:16px;align:center;margin-top:0px;padding-top:0px;padding-bottom:20px;"><strong> Time: {!curTime} </strong></span></td>
+                
+            </tr>
+            
+            <tr>
+                <td style="width: 100%;">            
+                    
+                 </td>
+             </tr> 
+             <tr>
+                 <td></td>  
+            </tr>
+            <tr>
+                <td></td>  
+            </tr>
+            <tr> 
+                
+                <td width="100%" Style="padding: 0px 50px 0px 50px;font-size:16px;align:center;">Overall Code Coverage {!overAllCodeCoverage} %</td>
+                
+            </tr>
+            <tr>
+                <td ><br/></td>  
+            </tr>
+  
+             <tr bgcolor="#D8D8D8">
+                    <td><strong><span>Coverage Details</span></strong></td>
+                </tr>
+                <tr>
+                    <td>
+                        <table width="100%" height="100%">
+                             <tr>
+                                <td style="border: solid #000 1px;" align="left">Serial Number</td>
+                                <td style="border: solid #000 1px;" width="50%">Class/Trigger Name</td>
+                                <td style="border: solid #000 1px;">Coverage</td>
+                                <td style="border: solid #000 1px;">Severity</td>
+                            </tr>
+                             <apex:variable var="count" value="{!0}"/>
+                             <apex:repeat value="{!classDetails}" var="item">
+                             <apex:variable var="count" value="{!count + 1}"/>
+                                <tr>
+                                    <apex:outputPanel layout="none" >                                
+                                        <td style="border: solid #000 1px;">{!count}<br/></td>
+                                        <td style="border: solid #000 1px;" width="50%">{!item.className} <br/></td>
+                                        <td style="border: solid #000 1px;">{!item.codeCoverage} </td>                   
+                                        <td style="border: solid #000 1px;">{!item.severity}<br/></td>
+                                    </apex:outputPanel>
+                                </tr>
+                                
+                             </apex:repeat>
+                        </table>
+                        <apex:outputPanel id="failingTestClassList" rendered="{!!negativeOutput.empty}">
+                            <table>    
+                                <tr bgcolor="#D8D8D8" >
+                                    <td colspan="3"><strong><span>List of failed test classes</span></strong></td>
+                                </tr>
+                                <tr bgcolor="#D8D8D8" >
+                                    <td ><strong><span>Test Class</span></strong></td>
+                                    <td ><strong><span>Method</span></strong></td>
+                                    <td ><strong><span>Message</span></strong></td>
+                                </tr>
+                                <apex:repeat value="{!negativeOutput}" var="failTest">
+                                <tr width="100%"> 
+                                    <td width="100%">{!failTest.ApexClass.Name}</td>
+                                    <td width="100%">{!failTest.MethodName}</td>
+                                    <td width="100%">{!failTest.Message}</td>
+                                </tr>   
+                                 </apex:repeat>      
+                          </table>       
+                      </apex:outputPanel>
+                    </td>
+               </tr>
+</table>
+</apex:component>

@@ -1,0 +1,75 @@
+/**************
+/*** Name: UnitTestResultCheckerBatch.cls
+/*** Description: Select record from Unit Test Log & generate report for completed jobs
+/*** Developer Name: Debanjan Sharma
+/*** Last Modified On:
+/*** Last Modification Details:
+/*** Version:
+/****************/
+global class UnitTestResultCheckerBatch implements Database.Batchable<sObject>, Database.AllowsCallouts, Database.Stateful {
+	
+	global Database.QueryLocator start(Database.BatchableContext bc){
+    
+        return Database.getQueryLocator([SELECT Id,Name,Email_Sent__c,SalesforceJobId__c,Status__c FROM Unit_Test_Log__c WHERE Status__c ='In Progress' and Email_Sent__c = false]);
+    
+    }
+    
+       // Execute method
+ 	global void execute(Database.BatchableContext bc,List<Unit_Test_Log__c> logList){
+    	//Check if logList list is not empty
+    	if(!logList.isEmpty()){
+    		
+    		Set<Id> asyncJobIdSet = new Set<Id>();
+    		
+    		for(Unit_Test_Log__c eachLog: logList){
+    			asyncJobIdSet.add(eachLog.SalesforceJobId__c);
+    		}
+    		
+    		//Map Job id & list of test classes
+    		map<Id,List<ApexClass>> testClassParentIdMap = new map<Id,List<ApexClass>>();
+    		
+    		//Job Id & status Map
+    		
+    		map<Id,Boolean> inProgressJobStatusMap = new map<Id,Boolean>();
+    		    		
+    		//Get test classes related to parent job id
+    		
+    		List<ApexTestQueueItem> queueItemList = [SELECT ApexClass.Name,Status,ExtendedStatus,ParentJobId FROM ApexTestQueueItem WHERE ParentJobId in :asyncJobIdSet];
+    		
+    		 for (ApexTestQueueItem eachQueueItem : queueItemList){
+    		 	
+                 
+                 // Creating map of job id & status
+                 
+                  if (eachQueueItem.Status != 'Completed' && eachQueueItem.Status != 'Failed' && eachQueueItem.Status != 'Aborted'){
+                  	
+                    inProgressJobStatusMap.put(eachQueueItem.ParentJobId,false);
+                    
+                 }
+            }
+            
+            //Changing status of Completed Logs
+            
+            for(Unit_Test_Log__c eachLog: logList){
+            	
+            	if(!inProgressJobStatusMap.containsKey(eachLog.SalesforceJobId__c)){
+            		eachLog.Status__c = 'Completed';
+            	}
+    			
+    		}
+            
+            try{
+            	
+            	update logList;
+            	
+            }catch(Exception e){
+            	
+            }
+            
+    		
+    	}
+    }
+    
+    // Finish Method 
+    global void finish(Database.BatchableContext bc){}
+}
