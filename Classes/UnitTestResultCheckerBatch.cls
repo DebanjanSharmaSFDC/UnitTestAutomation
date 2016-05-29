@@ -49,11 +49,13 @@ global class UnitTestResultCheckerBatch implements Database.Batchable<sObject>, 
             }
             
             //Changing status of Completed Logs
-            
+            List<Unit_Test_Log__c> sendEmailReport = new List<Unit_Test_Log__c>();
+
             for(Unit_Test_Log__c eachLog: logList){
             	
             	if(!inProgressJobStatusMap.containsKey(eachLog.SalesforceJobId__c)){
             		eachLog.Status__c = 'Completed';
+					sendEmailReport.add(eachLog);
             	}
     			
     		}
@@ -65,6 +67,7 @@ global class UnitTestResultCheckerBatch implements Database.Batchable<sObject>, 
             }catch(Exception e){
             	
             }
+			sendEmail(sendEmailReport);
             
     		
     	}
@@ -72,4 +75,44 @@ global class UnitTestResultCheckerBatch implements Database.Batchable<sObject>, 
     
     // Finish Method 
     global void finish(Database.BatchableContext bc){}
+	//Send Email
+	global void sendEmail(List<Unit_Test_Log__c> uintTestList){
+		
+		List<EmailRecipients__c> emailIdList = EmailRecipients__c.getAll().Values();
+		List<String> emailAddressList = new List<String>();
+
+		if (!emailIdList.isEmpty()){
+			
+			for (EmailRecipients__c eachEmail : emailIdList){
+				
+				emailAddressList.add(eachEmail.Email_Id__c);
+			}
+		}
+
+		List<Messaging.SingleEmailMessage> emailMessageList = new List<Messaging.SingleEmailMessage>();
+		List<EmailTemplate> emailTemplateList = [select id from EmailTemplate where name ='UnitTestReportTemplate'];
+		if (!uintTestList.isEmpty() && !emailTemplateList.isEmpty()){
+			
+			for (Unit_Test_Log__c eachUnit: uintTestList){
+
+				Messaging.SingleEmailMessage msg = new Messaging.SingleEmailMessage();
+				msg.setTemplateId(emailTemplateList.get(0).Id);
+				msg.setToAddresses(emailAddressList);
+				msg.setTargetObjectId(UserInfo.getUserId());
+				msg.setWhatId(eachUnit.Id);
+				msg.setSenderDisplayName('OIT Support');
+				msg.setSaveAsActivity(false);
+				emailMessageList.add(msg);
+
+			}
+
+		}
+
+		if (!emailMessageList.isEmpty()){
+			
+			Messaging.sendEmail(emailMessageList);
+		}
+		
+	
+	}
 }

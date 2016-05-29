@@ -41,6 +41,8 @@ global class UnitTestReportPdfController {
 	                   ApexLog.Application
 	            FROM ApexTestResult 
 	            WHERE AsyncApexJobId = :jobId];
+	         
+	         List<Unit_Test_Log__c> unitTestLog = [select id,SessionId__c,SalesforceJobId__c from Unit_Test_Log__c where SalesforceJobId__c =:jobId];
            
             positiveOutput = new List<ApexTestResult>();
             negativeOutput = new List<ApexTestResult>();
@@ -62,7 +64,7 @@ global class UnitTestReportPdfController {
 			    + '/services/data/v29.0/tooling/query/?q='+EncodingUtil.urlEncode('SELECT PercentCovered FROM ApexOrgWideCoverage', 'UTF-8'));
 			req.setMethod('GET');
 			// OAuth header
-			req.setHeader('Authorization', 'OAuth ' + UserInfo.getSessionId());
+			req.setHeader('Authorization', 'OAuth ' + unitTestLog.get(0).SessionId__c);
 		    req.setHeader('Content-Type', 'application/json');
 		    Http h = new Http();
 		    HttpResponse res = h.send(req);
@@ -77,7 +79,7 @@ global class UnitTestReportPdfController {
 			    + '/services/data/v29.0/tooling/query/?q='+EncodingUtil.urlEncode('SELECT ApexClassOrTrigger.Name,sum(NumLinesCovered)NumLinesCovered,sum(NumLinesUncovered)NumLinesUncovered FROM ApexCodeCoverage group BY ApexClassOrTrigger.Name', 'UTF-8'));
 			reqForIndividualTestCoverage.setMethod('GET');
 			// OAuth header
-			reqForIndividualTestCoverage.setHeader('Authorization', 'OAuth ' + UserInfo.getSessionId());
+			reqForIndividualTestCoverage.setHeader('Authorization', 'OAuth ' +unitTestLog.get(0).SessionId__c);
 		    reqForIndividualTestCoverage.setHeader('Content-Type', 'application/json');
 		    Http h1 = new Http();
 		    HttpResponse resOfIndividualClass = h1.send(reqForIndividualTestCoverage);
@@ -92,6 +94,8 @@ global class UnitTestReportPdfController {
             	
             	DisplayClassDetails clsDetail = new DisplayClassDetails();
             	clsDetail.className = eachRecord.Name;
+            	clsDetail.NumLinesCovered = Integer.valueOf(eachRecord.NumLinesCovered);
+            	clsDetail.NumLinesUncovered = Integer.valueOf(eachRecord.NumLinesUncovered);
             	clsDetail.codeCoverage = Integer.valueOf((eachRecord.NumLinesCovered/(eachRecord.NumLinesCovered+eachRecord.NumLinesUncovered))*100);
             	
             	if(clsDetail.codeCoverage < 75 ){
@@ -119,6 +123,8 @@ global class UnitTestReportPdfController {
 	
 	Public class DisplayClassDetails{
 		public string className {get;set;}
+		public integer NumLinesUncovered {get;set;}
+		public integer NumLinesCovered {get;set;}
 		public integer codeCoverage {get;set;}
 		public String severity {get;set;}
 	}
